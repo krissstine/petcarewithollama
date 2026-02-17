@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐾 PH PetCare System - Black & White Edition</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        /* BLACK AND WHITE THEME - COLORFUL MAP REMAINS */
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+        }
+        
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background: #ffffff; 
+            color: #000000;
+        }
+        
+        .container { 
+            max-width: 1400px; 
+            margin: 0 auto; 
+            padding: 20px; 
+        }
+        
+        /* HEADER - Pure black and white */
+        header {
+            background: #000000;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 0;
+            box-shadow: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 2px solid #000000;
+        }
+        
+        header h1 {
+            color: #ffffff;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+        
+        header h1 span {
+            color: #ffffff;
+            font-weight: 700;
+        }
+        
+        /* MAIN LAYOUT */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 20px;
+        }
+        
+        /* MAP SECTION - Keep original colored map */
+        .map-section {
+            background: #ffffff;
+            padding: 0;
+            border-radius: 0;
+            box-shadow: none;
+            border: 2px solid #000000;
+        }
+        
+        .map-section h3 {
+            background: #000000;
+            color: #ffffff;
+            padding: 15px;
+            margin: 0;
+            font-weight: 400;
+            letter-spacing: 1px;
+            border-bottom: 2px solid #000000;
+        }
+        
+        #map { 
+            height: 500px; 
+            width: 100%; 
+            border-radius: 0;
+            /* Remove grayscale filter - keep map colorful */
+        }
+        
+        /* SIDEBAR */
+        .sidebar {
+            background: #ffffff;
+            padding: 0;
+            border-radius: 0;
+            box-shadow: none;
+            border: 2px solid #000000;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            max-height: 800px;
+            overflow-y: auto;
+        }
+        
+        /* SECTION STYLES */
+        .auth-section, .voice-section, .locations-list {
+            border-bottom: 2px solid #000000;
+            padding: 20px;
+            margin: 0;
+        }
+        
+        .auth-section h3, .voice-section h3, .locations-list h3 {
+            background: #000000;
+            color: #ffffff;
+            padding: 12px 15px;
+            margin: -20px -20px 20px -20px;
+            font-weight: 400;
+            letter-spacing: 1px;
+        }
+        
+        /* FORM ELEMENTS */
+        .form-group { 
+            margin-bottom: 15px; 
+        }
+        
+        label { 
+            display: block; 
+            margin-bottom: 5px; 
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #000000;
+            border-radius: 0;
+            font-size: 14px;
+            background: #ffffff;
+            color: #000000;
+            font-family: inherit;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            background: #f5f5f5;
+        }
+        
+        /* BUTTONS - All black and white */
+        button {
+            background: #000000;
+            color: #ffffff;
+            padding: 14px;
+            border: 2px solid #000000;
+            border-radius: 0;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 5px;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.2s ease;
+        }
+        
+        button:hover {
+            background: #ffffff;
+            color: #000000;
+            border: 2px solid #000000;
+        }
+        
+        .btn-secondary { 
+            background: #ffffff;
+            color: #000000;
+            border: 2px solid #000000;
+        }
+        
+        .btn-secondary:hover { 
+            background: #000000;
+            color: #ffffff;
+        }
+        
+        /* VOICE BUTTON */
+        .btn-voice {
+            background: #000000;
+            color: #ffffff;
+            font-size: 16px;
+            padding: 16px;
+            border: 2px solid #000000;
+            animation: pulse 2s infinite;
+        }
+        
+        .btn-voice:hover { 
+            background: #ffffff;
+            color: #000000;
+        }
+        
+        .btn-voice.listening { 
+            background: #ffffff;
+            color: #000000;
+            border: 2px solid #000000;
+            animation: pulse 1s infinite;
+        }
+        
+        /* VOICE INDICATOR */
+        .voice-indicator {
+            text-align: center;
+            padding: 15px;
+            background: #f5f5f5;
+            border: 2px solid #000000;
+            margin: 10px 0;
+            min-height: 60px;
+            font-size: 14px;
+            border-radius: 0;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .listening { 
+            background: #000000 !important;
+            color: #ffffff !important;
+            font-weight: bold;
+            animation: pulse 1s infinite;
+        }
+        
+        .speaking { 
+            background: #ffffff !important;
+            color: #000000 !important;
+            font-weight: bold;
+            border: 2px solid #000000;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        
+        /* CHAT BOX */
+        .chat-box {
+            height: 250px;
+            overflow-y: auto;
+            border: 2px solid #000000;
+            padding: 15px;
+            margin: 10px 0;
+            background: #ffffff;
+            border-radius: 0;
+        }
+        
+        .message { 
+            margin-bottom: 10px; 
+            padding: 12px; 
+            border-radius: 0;
+            border: 2px solid #000000;
+        }
+        
+        .user-message {
+            text-align: right;
+            background: #ffffff;
+            color: #000000;
+            border: 2px solid #000000;
+        }
+        
+        .assistant-message {
+            text-align: left;
+            background: #000000;
+            color: #ffffff;
+            border: 2px solid #000000;
+        }
+        
+        /* LOCATION ITEMS */
+        .location-item {
+            border: 2px solid #000000;
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            border-radius: 0;
+            transition: all 0.2s ease;
+            background: #ffffff;
+        }
+        
+        .location-item:hover {
+            background: #000000;
+            color: #ffffff;
+            transform: translateX(0);
+        }
+        
+        .location-item:hover small {
+            color: #cccccc;
+        }
+        
+        .location-item small {
+            color: #666666;
+        }
+        
+        .location-item:hover small {
+            color: #cccccc;
+        }
+        
+        /* BADGES - Keep some color functionality but make them black and white */
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            background: #000000;
+            color: #ffffff;
+            font-size: 11px;
+            border-radius: 0;
+            margin-right: 5px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid #000000;
+        }
+        
+        .badge.clinic { 
+            background: #000000;
+            color: #ffffff;
+        }
+        
+        .badge.store { 
+            background: #ffffff;
+            color: #000000;
+            border: 1px solid #000000;
+        }
+        
+        .badge.emergency { 
+            background: #ffffff;
+            color: #000000;
+            border: 2px solid #000000;
+            animation: pulse 1s infinite;
+        }
+        
+        .badge.city { 
+            background: #000000;
+            color: #ffffff;
+        }
+        
+        /* TABS */
+        .tab-buttons { 
+            display: flex; 
+            gap: 0;
+            margin-bottom: 20px;
+            border: 2px solid #000000;
+        }
+        
+        .tab-btn {
+            flex: 1;
+            background: #ffffff;
+            color: #000000;
+            border: none;
+            margin: 0;
+            padding: 12px;
+            font-size: 13px;
+        }
+        
+        .tab-btn.active { 
+            background: #000000;
+            color: #ffffff;
+        }
+        
+        .tab-btn:not(:last-child) {
+            border-right: 2px solid #000000;
+        }
+        
+        .tab-content { 
+            display: none; 
+        }
+        
+        .tab-content.active { 
+            display: block; 
+        }
+        
+        /* USER INFO */
+        .user-info {
+            background: #f5f5f5;
+            padding: 15px;
+            border-left: 4px solid #000000;
+            border-radius: 0;
+            margin-bottom: 15px;
+            border: 2px solid #000000;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* VOICE CONTROLS */
+        .voice-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .voice-controls input { 
+            flex: 1;
+            border: 2px solid #000000;
+        }
+        
+        .voice-controls button { 
+            width: auto;
+            padding: 12px 20px;
+            margin: 0;
+        }
+        
+        /* STATUS BADGE */
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 0;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: #000000;
+            color: #ffffff;
+            border: 2px solid #ffffff;
+        }
+        
+        .status-badge.online { 
+            background: #ffffff;
+            color: #000000;
+            border: 2px solid #000000;
+        }
+        
+        /* COUNT DISPLAY */
+        .clinic-count {
+            font-size: 13px;
+            margin-top: 15px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 0;
+            border: 2px solid #000000;
+            text-align: center;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* MAP CONTROLS - Keep original colorful but with black borders */
+        .leaflet-control-attribution {
+            font-size: 9px !important;
+        }
+        
+        .leaflet-control-zoom {
+            border: 2px solid #000000 !important;
+            box-shadow: none !important;
+        }
+        
+        .leaflet-control-zoom a {
+            background: #ffffff !important;
+            color: #000000 !important;
+            border: none !important;
+        }
+        
+        .leaflet-control-zoom a:hover {
+            background: #000000 !important;
+            color: #ffffff !important;
+        }
+        
+        /* POPUP STYLES - Keep original but with black borders */
+        .leaflet-popup-content-wrapper {
+            border-radius: 0;
+            border: 2px solid #000000;
+            background: #ffffff;
+            box-shadow: none;
+        }
+        
+        .leaflet-popup-tip {
+            background: #000000;
+        }
+        
+        .leaflet-popup-content {
+            color: #000000;
+            font-size: 12px;
+            margin: 15px;
+        }
+        
+        /* USER STATUS */
+        #userStatus {
+            color: #ffffff;
+            font-weight: 600;
+        }
+        
+        #userStatus button {
+            width: auto;
+            padding: 8px 15px;
+            background: #ffffff;
+            color: #000000;
+            border: 2px solid #000000;
+            margin-left: 10px;
+        }
+        
+        #userStatus button:hover {
+            background: #000000;
+            color: #ffffff;
+        }
+        
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .main-content { 
+                grid-template-columns: 1fr; 
+            }
+        }
+        
+        /* SCROLLBAR - Black and white */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f5f5f5;
+            border-left: 2px solid #000000;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #000000;
+            border-radius: 0;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #333333;
+        }
+        
+        /* LINKS */
+        a {
+            color: #000000;
+            text-decoration: underline;
+        }
+        
+        a:hover {
+            color: #000000;
+            text-decoration: none;
+        }
+        
+        /* HORIZONTAL RULES */
+        hr {
+            border: none;
+            border-top: 2px solid #000000;
+            margin: 20px 0;
+        }
+        
+        /* Keep map markers colorful */
+        .custom-marker {
+            font-size: 24px;
+            line-height: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🐾 <span>PH PETCARE</span> SYSTEM</h1>
+            <div id="userStatus"></div>
+        </header>
+        
+        <div class="main-content">
+            <div class="map-section">
+                <h3>📍 PHILIPPINE VETERINARY MAP</h3>
+                <div id="map"></div>
+                <div style="margin-top: 15px; display: flex; gap: 10px; padding: 15px; background: #f5f5f5; border-top: 2px solid #000000;">
+                    <button onclick="getUserLocation()" class="btn-secondary" style="flex: 1;">📍 TRACK MY LOCATION</button>
+                    <select id="locationFilter" onchange="loadLocations()" style="width: auto; flex: 1;">
+                        <option value="all">ALL SERVICES</option>
+                        <option value="clinics">VET CLINICS ONLY</option>
+                        <option value="stores">PET STORES ONLY</option>
+                    </select>
+                </div>
+                <div class="clinic-count" id="clinicCount"></div>
+            </div>
+            
+            <div class="sidebar">
+                <div class="auth-section" id="authSection">
+                    <h3>🔐 LOGIN / REGISTER</h3>
+                    <div class="tab-buttons">
+                        <button class="tab-btn active" onclick="showTab('login')">LOGIN</button>
+                        <button class="tab-btn" onclick="showTab('register')">REGISTER</button>
+                    </div>
+                    
+                    <div id="loginTab" class="tab-content active">
+                        <div class="form-group">
+                            <label>EMAIL</label>
+                            <input type="email" id="loginEmail" placeholder="Enter email" value="john.doe@email.com">
+                        </div>
+                        <div class="form-group">
+                            <label>PASSWORD</label>
+                            <input type="password" id="loginPassword" placeholder="Enter password" value="password123">
+                        </div>
+                        <button onclick="login()">LOGIN</button>
+                        <small style="display: block; text-align: center; margin-top: 15px; color: #666; font-size: 11px; text-transform: uppercase;">
+                            DEMO: john.doe@email.com / password123
+                        </small>
+                    </div>
+                    
+                    <div id="registerTab" class="tab-content">
+                        <div class="form-group">
+                            <label>FULL NAME</label>
+                            <input type="text" id="regFullName" placeholder="Enter full name">
+                        </div>
+                        <div class="form-group">
+                            <label>EMAIL</label>
+                            <input type="email" id="regEmail" placeholder="Enter email">
+                        </div>
+                        <div class="form-group">
+                            <label>PASSWORD</label>
+                            <input type="password" id="regPassword" placeholder="Choose password">
+                        </div>
+                        <div class="form-group">
+                            <label>CONTACT</label>
+                            <input type="text" id="regContact" placeholder="Contact number">
+                        </div>
+                        <button onclick="registerUser()">REGISTER</button>
+                    </div>
+                </div>
+                
+                <div class="voice-section">
+                    <h3>🎤 VOICE ASSISTANT</h3>
+                    <div class="user-info" id="userLocationInfo">
+                        CLICK "TRACK MY LOCATION" FIRST
+                    </div>
+                    <div class="voice-indicator" id="voiceIndicator">
+                        👆 CLICK MICROPHONE AND SPEAK
+                    </div>
+                    <div class="chat-box" id="chatBox"></div>
+                    
+                    <button id="voiceButton" class="btn-voice" onclick="startVoice()">
+                        🎤 CLICK & SPEAK
+                    </button>
+                    
+                    <div class="voice-controls">
+                        <input type="text" id="textMessage" placeholder="TYPE MESSAGE...">
+                        <button onclick="sendTextMessage()">SEND</button>
+                    </div>
+                    
+                    <div style="margin-top: 15px; font-size: 11px; color: #666; text-align: center; text-transform: uppercase; letter-spacing: 0.5px;">
+                        <span class="badge">TRY: "CLINICS IN MANILA"</span>
+                        <span class="badge">"EMERGENCY VET"</span>
+                        <span class="badge">"VETS NEAR ME"</span>
+                    </div>
+                </div>
+                
+                <div class="locations-list">
+                    <h3>📍 NEARBY SERVICES</h3>
+                    <div id="locationsContainer">LOADING...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        let map, userMarker, markers = [], recognition;
+        let currentLat = 14.5995, currentLng = 120.9842;
+        let isListening = false;
+        let allClinics = [];
+        
+        // ========== VOICE FUNCTIONS ==========
+        function playVoiceResponse(text) {
+            if (!text) return;
+            
+            document.getElementById('voiceIndicator').innerHTML = '🔊 SPEAKING...';
+            document.getElementById('voiceIndicator').className = 'voice-indicator speaking';
+            
+            fetch('/api/tts', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({text: text})
+            })
+            .then(response => response.blob())
+            .then(blob => {
+                const audio = new Audio(URL.createObjectURL(blob));
+                audio.play();
+                audio.onended = () => {
+                    document.getElementById('voiceIndicator').innerHTML = '👆 CLICK MICROPHONE TO SPEAK';
+                    document.getElementById('voiceIndicator').className = 'voice-indicator';
+                };
+            })
+            .catch(error => {
+                console.error('TTS error:', error);
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-PH';
+                window.speechSynthesis.speak(utterance);
+                utterance.onend = () => {
+                    document.getElementById('voiceIndicator').innerHTML = '👆 CLICK MICROPHONE TO SPEAK';
+                };
+            });
+        }
+
+        function processVoiceCommand(text) {
+            addToChat('user', text);
+            document.getElementById('voiceIndicator').innerHTML = '⏳ PROCESSING...';
+            
+            fetch('/api/ollama/chat', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    message: text,
+                    latitude: currentLat,
+                    longitude: currentLng
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                addToChat('assistant', result.response);
+                if (result.speech) {
+                    playVoiceResponse(result.speech);
+                } else {
+                    const plainText = result.response.replace(/[#*`]/g, '').replace(/\n/g, ' ');
+                    playVoiceResponse(plainText);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                addToChat('assistant', 'Sorry, I encountered an error.');
+            });
+        }
+        
+        function initVoice() {
+            if ('webkitSpeechRecognition' in window) {
+                recognition = new webkitSpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                recognition.lang = 'en-PH';
+                
+                recognition.onstart = function() {
+                    isListening = true;
+                    document.getElementById('voiceIndicator').innerHTML = '🎤 LISTENING... SPEAK NOW!';
+                    document.getElementById('voiceIndicator').className = 'voice-indicator listening';
+                    document.getElementById('voiceButton').classList.add('listening');
+                    document.getElementById('voiceButton').innerHTML = '🎤 LISTENING...';
+                };
+                
+                recognition.onend = function() {
+                    isListening = false;
+                    document.getElementById('voiceButton').classList.remove('listening');
+                    document.getElementById('voiceButton').innerHTML = '🎤 CLICK & SPEAK';
+                };
+                
+                recognition.onresult = function(event) {
+                    const text = event.results[0][0].transcript;
+                    processVoiceCommand(text);
+                };
+                
+                recognition.onerror = function() {
+                    document.getElementById('voiceIndicator').innerHTML = '❌ ERROR. TRY AGAIN.';
+                    setTimeout(() => {
+                        document.getElementById('voiceIndicator').innerHTML = '👆 CLICK MICROPHONE TO SPEAK';
+                    }, 2000);
+                };
+            } else {
+                alert('Voice not supported in this browser. Please use Chrome.');
+            }
+        }
+        
+        function startVoice() {
+            if (!recognition) initVoice();
+            if (recognition) {
+                if (isListening) recognition.stop();
+                else recognition.start();
+            }
+        }
+        
+        function sendTextMessage() {
+            const text = document.getElementById('textMessage').value;
+            if (text.trim()) {
+                processVoiceCommand(text);
+                document.getElementById('textMessage').value = '';
+            }
+        }
+        
+        function addToChat(sender, message) {
+            const chatBox = document.getElementById('chatBox');
+            const div = document.createElement('div');
+            div.className = `message ${sender === 'user' ? 'user-message' : 'assistant-message'}`;
+            div.innerHTML = message.replace(/\n/g, '<br>');
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+        
+        // ========== MAP FUNCTIONS ==========
+        function initMap() {
+            map = L.map('map').setView([currentLat, currentLng], 12);
+            
+            // Use standard colorful OpenStreetMap tiles (original map style)
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+            
+            // Keep colored markers
+            userMarker = L.marker([currentLat, currentLng]).addTo(map)
+                .bindPopup('Your Location');
+            
+            loadLocations();
+            checkLoginStatus();
+            initVoice();
+        }
+        
+        function getUserLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        currentLat = position.coords.latitude;
+                        currentLng = position.coords.longitude;
+                        map.setView([currentLat, currentLng], 14);
+                        userMarker.setLatLng([currentLat, currentLng]);
+                        document.getElementById('userLocationInfo').innerHTML = 
+                            `📍 LOCATION: ${currentLat.toFixed(4)}, ${currentLng.toFixed(4)}`;
+                        loadLocations();
+                        playVoiceResponse('Location updated successfully');
+                    },
+                    function(error) {
+                        alert('Error getting location: ' + error.message);
+                    }
+                );
+            }
+        }
+        
+        function loadLocations() {
+            const filter = document.getElementById('locationFilter').value;
+            fetch(`/api/locations?lat=${currentLat}&lng=${currentLng}&type=${filter}`)
+                .then(response => response.json())
+                .then(locations => {
+                    markers.forEach(m => map.removeLayer(m));
+                    markers = [];
+                    
+                    const container = document.getElementById('locationsContainer');
+                    container.innerHTML = '';
+                    
+                    let clinicCount = 0;
+                    let storeCount = 0;
+                    
+                    locations.forEach(loc => {
+                        if (loc.type === 'clinic') clinicCount++;
+                        if (loc.type === 'store') storeCount++;
+                        
+                        // Keep original colored markers
+                        let iconHtml = loc.type === 'clinic' ? '🏥' : '🏪';
+                        if (loc.emergency) iconHtml = '🚨';
+                        
+                        const marker = L.marker([loc.latitude, loc.longitude]).addTo(map);
+                        
+                        let popupContent = `<b>${loc.name}</b><br>`;
+                        popupContent += `${loc.address}<br>`;
+                        popupContent += `📞 ${loc.contact}<br>`;
+                        popupContent += `📍 ${loc.distance} KM AWAY<br>`;
+                        if (loc.emergency) popupContent += `🚨 EMERGENCY CLINIC<br>`;
+                        if (loc.hours) popupContent += `⏰ ${loc.hours}`;
+                        
+                        marker.bindPopup(popupContent);
+                        markers.push(marker);
+                        
+                        const div = document.createElement('div');
+                        div.className = 'location-item';
+                        div.onclick = () => {
+                            map.setView([loc.latitude, loc.longitude], 16);
+                            marker.openPopup();
+                        };
+                        
+                        let badgeHtml = `<span class="badge ${loc.type}">${loc.type.toUpperCase()}</span>`;
+                        if (loc.emergency) {
+                            badgeHtml += ` <span class="badge emergency">🚨 24/7</span>`;
+                        }
+                        if (loc.city) {
+                            badgeHtml += ` <span class="badge city">${loc.city.toUpperCase()}</span>`;
+                        }
+                        
+                        div.innerHTML = `
+                            ${badgeHtml}
+                            <b>${loc.name}</b><br>
+                            <small>📍 ${loc.distance} KM • 📞 ${loc.contact}</small><br>
+                            <small>${loc.address.substring(0, 50)}...</small>
+                        `;
+                        container.appendChild(div);
+                    });
+                    
+                    document.getElementById('clinicCount').innerHTML = 
+                        `📍 FOUND <b>${clinicCount}</b> CLINICS AND <b>${storeCount}</b> STORES WITHIN 50KM`;
+                    
+                    if (locations.length === 0) {
+                        container.innerHTML = '<p style="text-align: center; padding: 20px;">NO LOCATIONS FOUND NEARBY</p>';
+                        document.getElementById('clinicCount').innerHTML = 'NO LOCATIONS FOUND NEARBY';
+                    }
+                });
+        }
+        
+        function showTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            if (tab === 'login') {
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                document.getElementById('loginTab').classList.add('active');
+            } else {
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                document.getElementById('registerTab').classList.add('active');
+            }
+        }
+        
+        function login() {
+            const data = {
+                email: document.getElementById('loginEmail').value,
+                password: document.getElementById('loginPassword').value
+            };
+            
+            fetch('/api/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    document.getElementById('userStatus').innerHTML = 
+                        `WELCOME, ${result.username.toUpperCase()} <button onclick="logout()" style="width: auto; padding: 8px 15px;">LOGOUT</button>`;
+                    document.getElementById('authSection').style.display = 'none';
+                    playVoiceResponse(`Welcome back ${result.username}!`);
+                } else {
+                    alert('Login failed: ' + result.error);
+                }
+            });
+        }
+        
+        function registerUser() {
+            const data = {
+                email: document.getElementById('regEmail').value,
+                password: document.getElementById('regPassword').value,
+                full_name: document.getElementById('regFullName').value,
+                contact: document.getElementById('regContact').value
+            };
+            
+            fetch('/api/register/user', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    alert('Registration successful! Please login.');
+                    showTab('login');
+                } else {
+                    alert('Registration failed: ' + result.error);
+                }
+            });
+        }
+        
+        function logout() {
+            fetch('/api/logout')
+            .then(() => {
+                document.getElementById('userStatus').innerHTML = '';
+                document.getElementById('authSection').style.display = 'block';
+            });
+        }
+        
+        function checkLoginStatus() {
+            fetch('/api/check-session')
+            .then(response => response.json())
+            .then(data => {
+                if (data.logged_in) {
+                    document.getElementById('userStatus').innerHTML = 
+                        `WELCOME, ${data.username.toUpperCase()} <button onclick="logout()" style="width: auto; padding: 8px 15px;">LOGOUT</button>`;
+                    document.getElementById('authSection').style.display = 'none';
+                }
+            });
+        }
+        
+        window.onload = initMap;
+    </script>
+</body>
+</html>
